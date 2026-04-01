@@ -22,7 +22,7 @@ export type TableData = Record<string, any> | { id: string | number; warning?: b
 
 interface TableFilterItem {
   name: string;
-  items: { value: string; name: string; badge?: Function | number }[];
+  items: { value: string; name: string; badge?: number | ((visible?: TableData[]) => string | number) }[];
   value: string[];
   binary?: boolean;
 }
@@ -220,12 +220,31 @@ export class AlarmoTable extends LitElement {
 
         let items = this.filterConfig![key].items;
         items = items.map((e) => {
-          if (e.badge && typeof e.badge == 'function')
-            return {
-              ...e,
-              badge: e.badge(this.data?.filter((a) => this.filterTableData(a, omit(this.filterSelection!, key)))),
+          if (e.badge && typeof e.badge == 'function') {
+            // Call badge function with visible rows (fallback to empty array)
+            const val = (e.badge as (v?: TableData[]) => string | number)(
+              this.data ? this.data.filter((a) => this.filterTableData(a, omit(this.filterSelection!, key))) : []
+            );
+            // Ensure returned badge matches declared type: number | (() => string|number)
+            if (typeof val === 'number') {
+              return { ...e, badge: val };
+            }
+            return { ...e, badge: () => String(val) } as {
+              value: string;
+              name: string;
+              badge?: number | ((visible?: TableData[]) => string | number);
             };
-          else return e;
+          }
+          // Ensure badge is number or function; convert non-number direct badges
+          if (e.badge !== undefined && typeof e.badge !== 'number') {
+            // Wrap string-like badges in a zero-arg function to match signature
+            return { ...e, badge: () => String(e.badge) } as {
+              value: string;
+              name: string;
+              badge?: number | ((visible?: TableData[]) => string | number);
+            };
+          }
+          return e;
         });
         const value = this.filterSelection![key].value;
         return html`
