@@ -38,14 +38,15 @@ export class AlarmoDurationPicker extends LitElement {
   render() {
     return html`
       <div class="wrapper">
-        ${!this.required ? html`
-        <div class="column">
-          <ha-checkbox
-            @change=${this._toggleEnableClick}
-            ?checked=${!this.disabled}
-          >
-          </ha-checkbox>`
-        : nothing}
+        ${
+          !this.required
+            ? html`
+                <div class="column">
+                  <ha-checkbox @change=${this._toggleEnableClick} ?checked=${!this.disabled}></ha-checkbox>
+                </div>
+              `
+            : nothing
+        }
         </div>
         <div class="column">
           <ha-textfield
@@ -87,28 +88,30 @@ export class AlarmoDurationPicker extends LitElement {
           </ha-textfield>
           <span class="label">${localize('components.time_picker.seconds', this.hass.language)}</span>
         </div>
-        ${this.showArrows
-        ? html`
-        <div class="column">
-          <wa-button
-            appearance="plain"
-            variant="brand"
-            size="medium"
-            ?disabled=${this.disabled}
-            @click=${this._secondsUpClick}
-          >
-            <ha-icon icon="mdi:chevron-up"></ha-icon>
-          </wa-button>
-          <wa-button
-            appearance="plain"
-            variant="brand"
-            size="medium"
-            ?disabled=${this.disabled}
-            @click=${this._secondsDownClick}
-          >
-            <ha-icon icon="mdi:chevron-down"></ha-icon>
-          </wa-button>`
-        : nothing}
+        ${
+          this.showArrows
+            ? html`
+                <div class="column">
+                  <wa-button
+                    appearance="plain"
+                    variant="brand"
+                    size="medium"
+                    ?disabled=${this.disabled}
+                    @click=${this._secondsUpClick}>
+                    <ha-icon icon="mdi:chevron-up"></ha-icon>
+                  </wa-button>
+                  <wa-button
+                    appearance="plain"
+                    variant="brand"
+                    size="medium"
+                    ?disabled=${this.disabled}
+                    @click=${this._secondsDownClick}>
+                    <ha-icon icon="mdi:chevron-down"></ha-icon>
+                  </wa-button>
+                </div>
+              `
+            : nothing
+        }
         </div>
       </div>
     `;
@@ -142,7 +145,7 @@ export class AlarmoDurationPicker extends LitElement {
   private _secondsChanged(ev: InputEvent) {
     let seconds = Number((ev.target as HTMLInputElement).value);
     if (seconds >= SECONDS_PER_MINUTE) {
-      seconds = (SECONDS_PER_MINUTE - 1);
+      seconds = SECONDS_PER_MINUTE - 1;
       (ev.target as HTMLInputElement).value = String(seconds);
     }
     let value = this._getMinutes() * SECONDS_PER_MINUTE + seconds;
@@ -165,8 +168,8 @@ export class AlarmoDurationPicker extends LitElement {
 
     return {
       valid: valid,
-      customError: !valid
-    }
+      customError: !valid,
+    };
   }
 
   private _validateSecondsInput(value: any, _nativeValidity: any) {
@@ -174,8 +177,8 @@ export class AlarmoDurationPicker extends LitElement {
 
     return {
       valid: valid,
-      customError: !valid
-    }
+      customError: !valid,
+    };
   }
 
   private _secondsUpClick() {

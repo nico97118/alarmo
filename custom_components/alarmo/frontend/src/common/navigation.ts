@@ -27,7 +27,7 @@ export const getPath = () => {
     let extraArgs = parts.slice(3);
 
     if (parts.includes('filter')) {
-      const n = extraArgs.findIndex(e => e == 'filter');
+      const n = extraArgs.findIndex((e) => e == 'filter');
       const filterParts = extraArgs.slice(n + 1);
       extraArgs = extraArgs.slice(0, n);
 
@@ -50,7 +50,7 @@ export const exportPath = (
     page: page,
     params: {},
   };
-  args.forEach(e => {
+  args.forEach((e) => {
     if (typeof e == 'string') path = { ...path, subpage: e };
     else if ('params' in e) path = { ...path, params: e.params };
     else if ('filter' in e) path = { ...path, filter: e.filter };
@@ -58,11 +58,11 @@ export const exportPath = (
 
   const dictToString = (dict: Record<string, string | undefined>) => {
     let keys = Object.keys(dict);
-    keys = keys.filter(e => dict[e]);
+    keys = keys.filter((e) => dict[e]);
     keys.sort();
     let string = '';
 
-    keys.forEach(key => {
+    keys.forEach((key) => {
       let val = dict[key];
       string = string.length ? `${string}/${key}/${val}` : `${key}/${val}`;
     });
