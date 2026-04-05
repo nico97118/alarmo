@@ -1,8 +1,11 @@
 """The Alarmo Integration."""
 
 import re
+import time
 import base64
+import hashlib
 import logging
+import threading
 
 import bcrypt
 from homeassistant.core import (
@@ -143,6 +146,10 @@ class AlarmoCoordinator(DataUpdateCoordinator):
             )
         )
         self.register_events()
+
+        # Authentication cache (code hash -> user lookup result)
+        self._auth_cache = {}
+        self._auth_cache_lock = threading.Lock()
 
         super().__init__(hass, _LOGGER, config_entry=entry, name=const.DOMAIN)
 
@@ -303,6 +310,7 @@ class AlarmoCoordinator(DataUpdateCoordinator):
         """Update user configuration."""
         if const.ATTR_REMOVE in data:
             self.store.async_delete_user(user_id)
+            self._clear_auth_cache()
             return
 
         if ATTR_NAME in data:
@@ -335,12 +343,18 @@ class AlarmoCoordinator(DataUpdateCoordinator):
 
         if not user_id:
             self.store.async_create_user(data)
+            self._clear_auth_cache()
             return
         else:
             if ATTR_CODE in data:
                 del data[const.ATTR_OLD_CODE]
             self.store.async_update_user(user_id, data)
+            self._clear_auth_cache()
             return
+
+    def _clear_auth_cache(self):
+        with self._auth_cache_lock:
+            self._auth_cache.clear()
 
     def _do_authenticate(self, code, user_id=None):
         """Core blocking authentication logic."""
@@ -371,7 +385,25 @@ class AlarmoCoordinator(DataUpdateCoordinator):
 
     def _authenticate_user_sync(self, code, user_id=None):
         """Blocking authentication — must only be called from an executor."""
-        return self._do_authenticate(code, user_id)
+        cache_key = (hashlib.sha256((code or "").encode()).hexdigest(), user_id)
+        now = time.monotonic()
+
+        with self._auth_cache_lock:
+            entry = self._auth_cache.get(cache_key)
+            if entry:
+                result, ts = entry
+                if now - ts < const.AUTH_CACHE_TTL:
+                    return result
+
+        result = self._do_authenticate(code, user_id)
+
+        with self._auth_cache_lock:
+            # Limit cache size
+            if len(self._auth_cache) > 100:
+                self._auth_cache.clear()
+            self._auth_cache[cache_key] = (result, now)
+
+        return result
 
     async def async_authenticate_user(self, code, user_id=None):
         """Non-blocking authentication — safe to call from the event loop."""

@@ -33,6 +33,7 @@ PANEL_NAME = "alarm-panel"
 
 INITIALIZATION_TIME = datetime.timedelta(seconds=60)
 SENSOR_ARM_TIME = datetime.timedelta(seconds=5)
+AUTH_CACHE_TTL = 5
 
 STATES = [
     AlarmControlPanelState.ARMED_AWAY,
