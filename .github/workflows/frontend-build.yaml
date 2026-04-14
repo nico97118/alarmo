@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
 
     steps:
       - uses: actions/checkout@v4
@@ -31,3 +32,22 @@ jobs:
       - name: Build frontend
         working-directory: custom_components/alarmo/frontend
         run: npm run build
+
+      - name: Check for build output changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: check_changes
+        run: |
+          if git diff --quiet custom_components/alarmo/frontend/dist/alarm-panel.js; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit built frontend
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add custom_components/alarmo/frontend/dist/alarm-panel.js
+          git commit -m "build(frontend): rebuild frontend [skip ci]"
+          git push
