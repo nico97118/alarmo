@@ -215,9 +215,7 @@ export class AlarmViewCodes extends SubscribeMixin(LitElement) {
         `,
         enabled: html`
           <ha-switch
-            @click=${(ev: Event) => {
-            ev.stopPropagation();
-          }}
+            @click=${(ev: Event) => ev.stopPropagation()}
             ?checked=${item.enabled}
             @change=${(ev: Event) => this.toggleEnabled(ev, item.user_id!)}
           ></ha-switch>

@@ -140,10 +140,8 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
           renderer: (item: AlarmoAutomation) => html`
             <ha-switch
               ?checked=${item.enabled}
-              @click=${(ev: Event) => {
-              ev.stopPropagation();
-              this.toggleEnable(ev, item.automation_id!);
-            }}
+              @click=${(ev: Event) => ev.stopPropagation()}
+              @change=${(ev: Event) => this.toggleEnable(ev, item.automation_id!)}
             ></ha-switch>
           `,
           sortable: true,
@@ -231,7 +229,7 @@ export class AlarmViewActions extends SubscribeMixin(LitElement) {
   };
 
   private toggleEnable(ev: Event, item_id: string) {
-    saveAutomation(this.hass!, { automation_id: item_id, enabled: !(ev.target as HTMLInputElement).checked })
+    saveAutomation(this.hass!, { automation_id: item_id, enabled: (ev.target as HTMLInputElement).checked })
       .catch(e => handleError(e, ev))
       .then();
   }

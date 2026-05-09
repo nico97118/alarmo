@@ -165,9 +165,7 @@ export class SensorsOverviewCard extends SubscribeMixin(LitElement) {
         sort: (data: AlarmoSensor) => (data.enabled ? 1 : 0),
         renderer: (data: AlarmoSensor) => html`
           <ha-switch
-            @click=${(ev: Event) => {
-            ev.stopPropagation();
-          }}
+            @click=${(ev: Event) => ev.stopPropagation()}
             ?checked=${data.enabled}
             @change=${(ev: Event) => this.toggleEnabled(ev, data.entity_id)}
           ></ha-switch>
